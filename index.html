@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escaneo de ISBN</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+</head>
+<body>
+
+    <h1>Escaneo de ISBN</h1>
+    <form id="bookForm">
+        <label for="isbn">Código ISBN:</label>
+        <input type="text" id="isbn" name="isbn" required readonly>
+        <button type="button" id="scanButton">Escanear ISBN</button>
+        <button type="submit">Registrar Libro</button>
+    </form>
+
+    <div id="scanner" style="width: 100%; height: 300px; border: 1px solid #000;"></div>
+
+    <script>
+        document.getElementById('scanButton').addEventListener('click', function() {
+            // Inicializa el escáner
+            Quagga.init({
+                inputStream: {
+                    name: "Live",
+                    type: "LiveStream",
+                    target: document.querySelector('#scanner'), // El contenedor donde se mostrará el escáner
+                    constraints: {
+                        width: 640,
+                        height: 480,
+                        facingMode: "environment" // Usar la cámara trasera para móviles
+                    }
+                },
+                decoder: {
+                    readers: ["ean_reader"] // Soporte para EAN-13 (que es compatible con ISBN-13)
+                }
+            }, function(err) {
+                if (err) {
+                    console.log(err);
+                    return;
+                }
+                Quagga.start();
+            });
+
+            // Cuando se detecta un código de barras
+            Quagga.onDetected(function(result) {
+                if (result && result.codeResult && result.codeResult.code) {
+                    const isbnCode = result.codeResult.code;
+                    document.getElementById('isbn').value = isbnCode; // Poner el ISBN en el campo
+                    Quagga.stop(); // Detener el escáner
+                    document.getElementById('scanner').style.display = 'none'; // Ocultar el escáner
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>
